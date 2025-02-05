@@ -1,5 +1,6 @@
 from decimal import Decimal, getcontext, InvalidOperation
 import math
+import cmath
 import statistics
 choice = ""
 constant_memory = 1
@@ -8,6 +9,31 @@ getcontext().prec = 40
 ########################
 # P R O C E D U R E S  #
 ########################
+
+def get_decimal_input(prompt):
+    while True:
+        try:
+            value = input(prompt).upper()
+            return constant_memory if value == "MEMORY" else Decimal(value)
+        except InvalidOperation:
+            print("Invalid input. Please enter a valid number.")
+
+def convert_units(value, from_unit, to_unit):
+        """Converts between units using a base unit system."""
+        try:
+            if from_unit in unit_factors and to_unit in unit_factors:
+                # Convert to base unit, then to target unit
+                value_in_base = Decimal(value) * Decimal(unit_factors[from_unit])  # Convert to base unit
+                converted_value = value_in_base / Decimal(unit_factors[to_unit])   # Convert to target unit
+                return round(converted_value, 3)
+            else:
+                print("Invalid unit entered.")
+                return None
+        except InvalidOperation:
+            print("Invalid number entered.")
+            return None
+
+
 
 def simple_arithmetic():
     while True:
@@ -46,13 +72,9 @@ def simple_arithmetic():
 def calculate_surd():
     while True: 
         try:
-            adv_surd_1 = input("Enter value to be rooted: ")
-            adv_surd_1 = adv_surd_1.upper()
-            adv_surd_1 = constant_memory if adv_surd_1 == "MEMORY" else Decimal(adv_surd_1)
-            
-            adv_root = input("Enter nth root: ")
-            adv_root = adv_root.upper()
-            adv_root = constant_memory if adv_root == "MEMORY" else Decimal(adv_root)
+            adv_surd_1 = get_decimal_input("Enter value to be rooted: ")
+        
+            adv_root = get_decimal_input("Enter nth root: ")
             
             print(round(adv_surd_1**(1/adv_root),3))
             break
@@ -62,13 +84,9 @@ def calculate_surd():
 def calculate_logarithm():
     while True:
         try:
-            adv_logbase = input("Please enter base of log: ")
-            adv_logbase = adv_logbase.upper()
-            adv_logbase = constant_memory if adv_logbase == "MEMORY" else Decimal(adv_logbase)
+            adv_logbase = get_decimal_input("Please enter base of log: ")
             
-            adv_logargument = input("Please enter argument of log: ")
-            adv_logargument = adv_logargument.upper()
-            adv_logargument = constant_memory if adv_logargument == "MEMORY" else Decimal(adv_logargument)
+            adv_logargument = get_decimal_input("Please enter argument of log: ")
                                                                                   
             print(round(math.log(adv_logargument,adv_logbase),3))
             break
@@ -78,34 +96,34 @@ def calculate_logarithm():
 def calculate_quadratic():
     while True:
         try:
-            print("ax^2+bx+c = 0")
-            quadratic_a = input("Please enter value for a: ")
-            quadratic_a = quadratic_a.upper()
-            quadratic_a = constant_memory if quadratic_a == "MEMORY" else Decimal(quadratic_a)
+            print("Quadratic Equation: ax^2 + bx + c = 0")
+            a = get_decimal_input("Enter value for a: ")
+            b = get_decimal_input("Enter value for b: ")
+            c = get_decimal_input("Enter value for c: ")
 
-            quadratic_b = input("Please enter value for b: ")
-            quadratic_b = quadratic_b.upper()
-            quadratic_b = constant_memory if quadratic_b == "MEMORY" else Decimal(quadratic_b)
-            
-            quadratic_c = input("Please enter value for c: ")
-            quadratic_c = quadratic_c.upper()
-            quadratic_c = constant_memory if quadratic_c == "MEMORY" else Decimal(quadratic_c)
-            
-            discriminant = quadratic_b**2-4*quadratic_a*quadratic_c
-            
-            if discriminant < 0:
-                print("Quadratic has no real roots.")
-                break
-            if discriminant == 0:
-                print("Quadratic has one distinct real root.")
-                print("x solution:", round((-quadratic_b+Decimal(math.sqrt(discriminant)))/2*quadratic_a,3))
-                print("Completed square form: ( x +", quadratic_b/2, ")^2 +", ((quadratic_b/2)**2) + quadratic_c)
-                break
-            else:
-                print("First x solution:", round((-quadratic_b+Decimal(math.sqrt(discriminant)))/2*quadratic_a,3))
-                print("Second x solution:", round((-quadratic_b-Decimal(math.sqrt(discriminant)))/2*quadratic_a,3))
-                print("Completed square form: ( x +",round(quadratic_b/2,3), ")^2 +", round(((quadratic_b/2)**2) + quadratic_c,3))
-                break
+            if a == 0:
+                print("This is not a quadratic equation (a cannot be 0).")
+                return
+
+            # Calculate the discriminant
+            discriminant = (b**2) - (4*a*c)
+
+            # Compute square root of discriminant
+            sqrt_d = cmath.sqrt(discriminant)  
+
+            # Compute solutions
+            x1 = (-b + sqrt_d) / (2*a)
+            x2 = (-b - sqrt_d) / (2*a)
+
+            # Display solutions
+            print("\nSolutions:")
+            print(f"x₁ = {x1.real:.3f} {'+ ' + str(x1.imag) + 'i' if x1.imag != 0 else ''}")
+            print(f"x₂ = {x2.real:.3f} {'+ ' + str(x2.imag) + 'i' if x2.imag != 0 else ''}")
+
+            # Completed square form: (x + b/2a)^2 - (discriminant/4a)
+            completed_square_term = (b / (2*a)) ** 2 - (c / a)
+            print("\nCompleted Square Form:")
+            print(f"( x + {round(b / (2*a), 3)} )² + {round(completed_square_term, 3)} = 0")
         
         except InvalidOperation:
             print("Invalid value for quadratic. Please try again.")
@@ -242,15 +260,11 @@ def oz_to_g(mass):
 #2D Area
 def parallelogram_rectangle_area():
     try:
-        rectangle_area_base = input("Enter base length: ")
-        rectangle_area_base = rectangle_area_base.upper()
-        rectangle_area_base = constant_memory if rectangle_area_base == "MEMORY" else Decimal(rectangle_area_base)
+        rectangle_area_base = get_decimal_input("Enter base length: ")
         
-        rectangle_area_height = input("Enter height: ")
-        rectangle_area_height = rectangle_area_height.upper()
-        rectangle_area_height = constant_memory if rectangle_area_height == "MEMORY" else Decimal(rectangle_area_height)
+        rectangle_area_height = get_decimal_input("Enter height: ")
         
-        rectangle_area_unit = input("Enter unit of length: ")
+        rectangle_area_unit = get_decimal_input("Enter unit of length: ")
 
         print("Parallelogram/rectangle area is",round(rectangle_area_base*rectangle_area_height,3),rectangle_area_unit+"^2")
 
@@ -259,13 +273,9 @@ def parallelogram_rectangle_area():
 
 def triangle_area():
     try:
-        triangle_area_base = input("Enter base length: ")
-        triangle_area_base = triangle_area_base.upper()
-        triangle_area_base = constant_memory if triangle_area_base == "MEMORY" else Decimal(triangle_area_base)
+        triangle_area_base = get_decimal_input("Enter base length: ")
         
-        triangle_area_height = input("Enter perpendicular height: ")
-        triangle_area_height = triangle_area_height.upper()
-        triangle_area_height = constant_memory if triangle_area_height == "MEMORY" else Decimal(triangle_area_height)
+        triangle_area_height = get_decimal_input("Enter perpendicular height: ")
         
         triangle_area_unit = input("Enter unit of length: ")
 
@@ -276,9 +286,7 @@ def triangle_area():
 
 def circle_area():
     try:
-        circle_area_radius = input("Enter radius length: ")
-        circle_area_radius = circle_area_radius.upper()
-        circle_area_radius = constant_memory if circle_area_radius == "MEMORY" else Decimal(circle_area_radius)
+        circle_area_radius = get_decimal_input("Enter radius length: ")
         
         circle_area_unit = input("Enter unit of length: ")
 
@@ -289,17 +297,11 @@ def circle_area():
 
 def trapezium_area():
     try:
-        trapezium_area_length_a = input("Enter first side length: ")
-        trapezium_area_length_a = trapezium_area_length_a.upper()
-        trapezium_area_length_a = constant_memory if trapezium_area_length_a == "MEMORY" else Decimal(trapezium_area_length_a)
+        trapezium_area_length_a = get_decimal_input("Enter first side length: ")
         
-        trapezium_area_length_b = input("Enter second side length: ")
-        trapezium_area_length_b = trapezium_area_length_b.upper()
-        trapezium_area_length_b = constant_memory if trapezium_area_length_b == "MEMORY" else Decimal(trapezium_area_length_b)
+        trapezium_area_length_b = get_decimal_input("Enter second side length: ")
         
-        trapezium_area_height = input("Enter perpendicular height: ")
-        trapezium_area_height = trapezium_area_height.upper()
-        trapezium_area_height = constant_memory if trapezium_area_height == "MEMORY" else Decimal(trapezium_area_height)
+        trapezium_area_height = get_decimal_input("Enter perpendicular height: ")
         
         trapezium_area_unit = input("Enter unit of length: ")
 
@@ -312,17 +314,11 @@ def trapezium_area():
 #VOLUME
 def cuboid_volume():
     try:
-        cuboid_volume_l = input("Enter length of base: ")
-        cuboid_volume_l = cuboid_volume_l.upper()
-        cuboid_volume_l = constant_memory if cuboid_volume_l == "MEMORY" else Decimal(cuboid_volume_l)
+        cuboid_volume_l = get_decimal_input("Enter length of base: ")
         
-        cuboid_volume_w = input("Enter width of base: ")
-        cuboid_volume_w = cuboid_volume_w.upper()
-        cuboid_volume_w = constant_memory if cuboid_volume_w == "MEMORY" else Decimal(cuboid_volume_w)
-        
-        cuboid_volume_h = input("Enter height of cuboid: ")
-        cuboid_volume_h = cuboid_volume_h.upper()
-        cuboid_volume_h = constant_memory if cuboid_volume_h == "MEMORY" else Decimal(cuboid_volume_h)
+        cuboid_volume_w = get_decimal_input("Enter width of base: ")
+
+        cuboid_volume_h = get_decimal_input("Enter height of cuboid: ")
         
         cuboid_volume_unit = input("Enter length unit: ")
 
@@ -333,13 +329,9 @@ def cuboid_volume():
 
 def cylinder_volume():
     try:
-        cylinder_volume_r = input("Enter radius of base: ")
-        cylinder_volume_r = cylinder_volume_r.upper()
-        cylinder_volume_r = constant_memory if cylinder_volume_r == "MEMORY" else Decimal(cylinder_volume_r)
+        cylinder_volume_r = get_decimal_input("Enter radius of base: ")
         
-        cylinder_volume_h = input("Enter height of cylinder: ")
-        cylinder_volume_h = cylinder_volume_h.upper()
-        cylinder_volume_h = constant_memory if cylinder_volume_h == "MEMORY" else Decimal(cylinder_volume_h)
+        cylinder_volume_h = get_decimal_input("Enter height of cylinder: ")
         
         cylinder_volume_unit = input("Enter length unit: ")
 
@@ -349,17 +341,11 @@ def cylinder_volume():
         print("Invalid value. Please enter a number.")
 def triangle_prism_volume():
     try:
-        triangle_prism_volume_b = input("Enter base length: ")
-        triangle_prism_volume_b = triangle_prism_volume_b.upper()
-        triangle_prism_volume_b = constant_memory if triangle_prism_volume_b == "MEMORY" else Decimal(triangle_prism_volume_b)
+        triangle_prism_volume_b = get_decimal_input("Enter base length: ")
         
-        triangle_prism_volume_hb = input("Enter perpendicular height of base: ")
-        triangle_prism_volume_hb = triangle_prism_volume_hb.upper()
-        triangle_prism_volume_hb = constant_memory if triangle_prism_volume_hb == "MEMORY" else Decimal(triangle_prism_volume_hb)
+        triangle_prism_volume_hb = get_decimal_input("Enter perpendicular height of base: ")
     
-        triangle_prism_volume_hp = input("Enter height of prism: ")
-        triangle_prism_volume_hp = triangle_prism_volume_hp.upper()
-        triangle_prism_volume_hp = constant_memory if triangle_prism_volume_hp == "MEMORY" else Decimal(triangle_prism_volume_hp)
+        triangle_prism_volume_hp = get_decimal_input("Enter height of prism: ")
         
         triangle_prism_volume_unit = input("Enter unit of length: ")
 
@@ -372,10 +358,8 @@ def triangle_prism_volume():
 
 def sphere_volume():
     try:
-        sphere_volume_r = input("Enter sphere radius: ")
-        sphere_volume_r = sphere_volume_r.upper()
-        sphere_volume_r = constant_memory if sphere_volume_r == "MEMORY" else Decimal(sphere_volume_r)
-        
+        sphere_volume_r = get_decimal_input("Enter sphere radius: ")
+
         sphere_volume_unit = input("Enter length unit: ")
 
         print("Volume of sphere is",round(Decimal(4/3)*Decimal(math.pi)*sphere_volume_r**3,3),sphere_volume_unit+"^3")
@@ -385,18 +369,12 @@ def sphere_volume():
 
 def rectangle_pyramid_volume():
     try:
-        rectangle_pyramid_volume_l = input("Enter base length: ")
-        rectangle_pyramid_volume_l = rectangle_pyramid_volume_l.upper()
-        rectangle_pyramid_volume_l = constant_memory if rectangle_pyramid_volume_l == "MEMORY" else Decimal(rectangle_pyramid_volume_l)
+        rectangle_pyramid_volume_l = get_decimal_input("Enter base length: ")
         
-        rectangle_pyramid_volume_w = input("Enter base width: ")
-        rectangle_pyramid_volume_w = rectangle_pyramid_volume_w.upper()
-        rectangle_pyramid_volume_w = constant_memory if rectangle_pyramid_volume_w == "MEMORY" else Decimal(rectangle_pyramid_volume_w)
+        rectangle_pyramid_volume_w = get_decimal_input("Enter base width: ")
         
-        rectangle_pyramid_volume_h = input("Enter pyramid height: ")
-        rectangle_pyramid_volume_h = rectangle_pyramid_volume_h.upper()
-        rectangle_pyramid_volume_h = constant_memory if rectangle_pyramid_volume_h == "MEMORY" else Decimal(rectangle_pyramid_volume_h)
-        
+        rectangle_pyramid_volume_h = get_decimal_input("Enter pyramid height: ")
+
         rectangle_pyramid_volume_unit = input("Enter length unit: ")
 
         print("Volume of rectangle-based pyramid is",
@@ -408,9 +386,7 @@ def rectangle_pyramid_volume():
 
 def tetrahedron_volume():
     try:
-        tetrahedron_volume_l = input("Enter side length: ")
-        tetrahedron_volume_l = tetrahedron_volume_l.upper()
-        tetrahedron_volume_l = constant_memory if tetrahedron_volume_l == "MEMORY" else Decimal(tetrahedron_volume_l)
+        tetrahedron_volume_l = get_decimal_input("Enter side length: ")
         
         tetrahedron_volume_unit = input("Please enter length unit: ")
 
@@ -421,13 +397,9 @@ def tetrahedron_volume():
 
 def cone_volume():
     try:
-        cone_volume_r = input("Enter base radius: ")
-        cone_volume_r = cone_volume_r.upper()
-        cone_volume_r = constant_memory if cone_volume_r == "MEMORY" else Decimal(cone_volume_r)
-        
-        cone_volume_h = input("Enter perpendicular height of cone: ")
-        cone_volume_h = cone_volume_h.upper()
-        cone_volume_h = constant_memory if cone_volume_h == "MEMORY" else Decimal(cone_volume_h)
+        cone_volume_r = get_decimal_input("Enter base radius: ")
+
+        cone_volume_h = get_decimal_input("Enter perpendicular height of cone: ")
         
         cone_volume_unit = input("Enter length unit: ")
 
@@ -439,18 +411,12 @@ def cone_volume():
 #SURFACE AREA
 def cuboid_sa():
     try:
-        cuboid_sa_l = input("Enter cuboid length: ")
-        cuboid_sa_l = cuboid_sa_l.upper()
-        cuboid_sa_l = constant_memory if cuboid_sa_l == "MEMORY" else Decimal(cuboid_sa_l)
+        cuboid_sa_l = get_decimal_input("Enter cuboid length: ")
         
-        cuboid_sa_w = input("Enter cuboid width: ")
-        cuboid_sa_w = cuboid_sa_w.upper()
-        cuboid_sa_w = constant_memory if cuboid_sa_w == "MEMORY" else Decimal(cuboid_sa_w)
+        cuboid_sa_w = get_decimal_input("Enter cuboid width: ")
         
-        cuboid_sa_h = input("Enter cuboid height: ")
-        cuboid_sa_h = cuboid_sa_h.upper()
-        cuboid_sa_h = constant_memory if cuboid_sa_h == "MEMORY" else Decimal(cuboid_sa_h)
-        
+        cuboid_sa_h = get_decimal_input("Enter cuboid height: ")
+
         cuboid_sa_unit = input("Enter length unit: ")
 
         print("Cuboid surface area is",round(2*cuboid_sa_l*cuboid_sa_w+2*cuboid_sa_l*cuboid_sa_h+2*cuboid_sa_h*cuboid_sa_w,3),cuboid_sa_unit+"^2")
@@ -460,13 +426,9 @@ def cuboid_sa():
 
 def cylinder_sa():
     try:
-        cylinder_sa_r = input("Enter base radius: ")
-        cylinder_sa_r = cylinder_sa_r.upper()
-        cylinder_sa_r = constant_memory if cylinder_sa_r == "MEMORY" else Decimal(cylinder_sa_r)
+        cylinder_sa_r = get_decimal_input("Enter base radius: ")
         
-        cylinder_sa_h = input("Enter cylinder height: ")
-        cylinder_sa_h = cylinder_sa_h.upper()
-        cylinder_sa_h = constant_memory if cylinder_sa_h == "MEMORY" else Decimal(cylinder_sa_h)
+        cylinder_sa_h = get_decimal_input("Enter cylinder height: ")
         
         cylinder_sa_unit = input("Enter length unit: ")
 
@@ -477,21 +439,13 @@ def cylinder_sa():
 
 def triangle_prism_sa():
     try:
-        triangle_prism_sa_b = input("Enter base length: ")
-        triangle_prism_sa_b = triangle_prism_sa_b.upper()
-        triangle_prism_sa_b = constant_memory if triangle_prism_sa_b == "MEMORY" else Decimal(triangle_prism_sa_b)
+        triangle_prism_sa_b = get_decimal_input("Enter base length: ")
         
-        triangle_prism_sa_s1 = input("Enter second base edge length: ")
-        triangle_prism_sa_s1 = triangle_prism_sa_s1.upper()
-        triangle_prism_sa_s1 = constant_memory if triangle_prism_sa_s1 == "MEMORY" else Decimal(triangle_prism_sa_s1)
+        triangle_prism_sa_s1 = get_decimal_input("Enter second base edge length: ")
         
-        triangle_prism_sa_s2 = input("Enter third base edge length: ")
-        triangle_prism_sa_s2 = triangle_prism_sa_s2.upper()
-        triangle_prism_sa_s2 = constant_memory if triangle_prism_sa_s2 == "MEMORY" else Decimal(triangle_prism_sa_s2)
+        triangle_prism_sa_s2 = get_decimal_input("Enter third base edge length: ")
         
-        triangle_prism_sa_h = input("Enter base perpendicular height: ")
-        triangle_prism_sa_h = triangle_prism_sa_h.upper()
-        triangle_prism_sa_h = constant_memory if triangle_prism_sa_h == "MEMORY" else Decimal(triangle_prism_sa_h)
+        triangle_prism_sa_h = get_decimal_input("Enter base perpendicular height: ")
         
         triangle_prism_sa_unit = input("Enter unit: ")
 
@@ -504,10 +458,8 @@ def triangle_prism_sa():
 
 def sphere_sa():
     try:
-        sphere_sa_r = input("Enter base radius: ")
-        sphere_sa_r = sphere_sa_r.upper()
-        sphere_sa_r = constant_memory if sphere_sa_r == "MEMORY" else Decimal(sphere_sa_r)
-        
+        sphere_sa_r = get_decimal_input("Enter base radius: ")
+    
         sphere_sa_unit = input("Enter unit: ")
 
         print("Sphere surface area is",round(4*Decimal(math.pi)*sphere_sa_r**2,3),sphere_sa_unit+"^2")
@@ -517,17 +469,11 @@ def sphere_sa():
 
 def rectangle_pyramid_sa():
     try:
-        pyramid_sa_base_l = input("Enter base length: ")
-        pyramid_sa_base_l = pyramid_sa_base_l.upper()
-        pyramid_sa_base_l = constant_memory if pyramid_sa_base_l == "MEMORY" else Decimal(pyramid_sa_base_l)
+        pyramid_sa_base_l = get_decimal_input("Enter base length: ")
         
-        pyramid_sa_base_w = input("Enter base width: ")
-        pyramid_sa_base_w = pyramid_sa_base_w.upper()
-        pyramid_sa_base_w = constant_memory if pyramid_sa_base_w == "MEMORY" else Decimal(pyramid_sa_base_w)
+        pyramid_sa_base_w = get_decimal_input("Enter base width: ")
         
-        pyramid_sa_h = input("Enter pyramid height: ")
-        pyramid_sa_h = pyramid_sa_h.upper()
-        pyramid_sa_h = constant_memory if pyramid_sa_h == "MEMORY" else Decimal(pyramid_sa_h)
+        pyramid_sa_h = get_decimal_input("Enter pyramid height: ")
         
         pyramid_sa_unit = input("Enter length unit: ")
 
@@ -540,9 +486,7 @@ def rectangle_pyramid_sa():
 
 def tetrahedron_sa():
     try:
-        tetrahedron_sa_side = input("Enter tetrahedrone side length: ")
-        tetrahedron_sa_side = tetrahedron_sa_side.upper()
-        tetrahedron_sa_side = constant_memory if tetrahedron_sa_side == "MEMORY" else Decimal(tetrahedron_sa_side)
+        tetrahedron_sa_side = get_decimal_input("Enter tetrahedrone side length: ")
         
         tetrahedron_sa_unit = input("Enter length unit: ")
 
@@ -553,13 +497,9 @@ def tetrahedron_sa():
 
 def cone_sa():
     try:
-        cone_sa_r = input("Enter cone base radius: ")
-        cone_sa_r = cone_sa_r.upper()
-        cone_sa_r = constant_memory if cone_sa_r == "MEMORY" else Decimal(cone_sa_r)
+        cone_sa_r = get_decimal_input("Enter cone base radius: ")
         
-        cone_sa_h = input("Enter perpendicular height of cone: ")
-        cone_sa_h = cone_sa_h.upper()
-        cone_sa_h = constant_memory if cone_sa_h == "MEMORY" else Decimal(cone_sa_h)
+        cone_sa_h = get_decimal_input("Enter perpendicular height of cone: ")
         
         cone_sa_unit = input("Enter length unit: ")
 
@@ -761,252 +701,26 @@ while choice != "X":
     elif choice == "C":
         print("--- UNIT CONVERSION ---")
         print("This section allows you to convert values from different units, including Metric to Imperial system units.")
-        print("A: Distance")
-        print("B: Area")
-        print("C: Volume")
-        print("D: Mass")
+       
+        unit_factors = {
+        "mm": 0.001, "cm": 0.01, "m": 1, "km": 1000, "mi": 1609.34, "yds": 0.9144, "ft": 0.3048,
+        "mm2": 1e-6, "cm2": 1e-4, "m2": 1, "km2": 1e6, "ha": 1e4, "ac": 4046.86,
+        "mm3": 1e-9, "cm3": 1e-6, "m3": 1, "l": 1e-3, "ml": 1e-6, "fl_oz": 2.95735e-5, "gal": 3.78541e-3,
+        "mg": 1e-6, "g": 1e-3, "kg": 1, "t": 1000, "lbs": 0.453592, "st": 6.35029, "oz": 0.0283495
+    }
 
-        try:
+        while True:
+            from_unit = input("Enter the current unit (e.g., mm, cm, m, km): ").lower()
+            to_unit = input("Enter the unit to convert to: ").lower()
+            value = get_decimal_input("Enter the value to convert: ")
 
-            unit_choice = input("Please pick an option: ")
-            unit_choice = unit_choice.upper()
+            converted_value = convert_units(value, from_unit, to_unit)
+            if converted_value is not None:
+                print(f"{value} {from_unit} is {converted_value} {to_unit}")
 
-            if unit_choice == "A":
-                print("- DISTANCE -")
-                print("A: mm to cm")
-                print("B: cm to m")
-                print("C: m to km")
-                print("D: km to m")
-                print("E: m to cm")
-                print("F: cm to mm")
-                print("G: Metric-Imperial conversion")
-
-
-                try:
-                    
-                    dist_value = input("Please enter distance: ")
-                    dist_value = dist_value.upper()
-                    dist_value = constant_memory if dist_value == "MEMORY" else Decimal(dist_value)
-                    
-                    dist_choice = input("Please choose a conversion: ")
-                    dist_choice = dist_choice.upper()
-
-                    if dist_choice == "A":
-                        print(dist_value,"mm is",round(mm_to_cm(dist_value),3),"cm")
-                    elif dist_choice == "B":
-                        print(dist_value,"cm is",round(cm_to_m(dist_value),3),"m")
-                    elif dist_choice == "C":
-                        print(dist_value,"m is",round(m_to_km(dist_value),3),"km")
-                    elif dist_choice == "D":
-                        print(dist_value,"km is",round(km_to_m(dist_value),3),"m")
-                    elif dist_choice == "E":
-                        print(dist_value,"m is",round(m_to_cm(dist_value),3),"cm")
-                    elif dist_choice == "F":
-                        print(dist_value,"cm is",round(cm_to_mm(dist_value),3),"mm")
-
-                    elif dist_choice == "G":
-                        print("- METRIC-IMPERIAL DISTANCE CONVERSION -")
-                        print("A: km to mi")
-                        print("B: mi to km")
-                        print("C: cm to ft")
-                        print("D: ft to cm")
-                        print("E: m to yds")
-                        print("F: yds to m")
-                        
-                        d_imp_choice = input("Please enter conversion: ")
-                        d_imp_choice = d_imp_choice.upper()
-
-                        if d_imp_choice == "A":
-                            print(dist_value,"km is",round(km_to_mi(dist_value),3),"mi")
-                        elif d_imp_choice == "B":
-                            print(dist_value,"mi is",round(mi_to_km(dist_value),3),"km")
-                        elif d_imp_choice == "C":
-                            print(dist_value,"cm is",round(cm_to_ft(dist_value),3),"ft")
-                        elif d_imp_choice == "D":
-                            print(dist_value,"ft is",round(ft_to_cm(dist_value),3),"cm")
-                        elif d_imp_choice == "E":
-                            print(dist_value, "m is",round(m_to_yds(dist_value),3),"yds")
-                        elif d_imp_choice == "F":
-                            print(dist_value,"yds is",round(yds_to_m(dist_value),3),"m")
-
-                except InvalidOperation:
-                    print("Invalid value, please enter a number.")
-
-            elif unit_choice == "B":
-                print("- AREA -")
-                print("A: mm^2 to cm^2")
-                print("B: cm^2 to m^2")
-                print("C: m^2 to km^2")
-                print("D: km^2 to m^2")
-                print("E: m^2 to cm^2")
-                print("F: cm^2 to mm^2")
-                print("G: Metric-Imperial conversion")
-
-                try:
-
-                    area_value = input("Please enter area: ")
-                    area_value = area_value.upper()
-                    area_value = constant_memory if area_value == "MEMORY" else Decimal(area_value)
-                    
-                    area_choice = input("Please enter conversion: ")
-                    area_choice = area_choice.upper()
-
-                    if area_choice == "A":
-                        print(area_value,"mm^2 is",round(mm2_to_cm2(area_value),3),"cm^2")
-                    elif area_choice == "B":
-                        print(area_value,"cm^2 is",round(cm2_to_m2(area_value),3),"m^2")
-                    elif area_choice == "C":
-                        print(area_value,"m^2 is",round(m2_to_km2(area_value),3),"km^2")
-                    elif area_choice == "D":
-                        print(area_value,"km^2 is",round(km2_to_m2(area_value),3),"m^2")
-                    elif area_choice == "E":
-                        print(area_value,"m^2 is",round(m2_to_cm2(area_value),3),"cm^2")
-                    elif area_choice == "F":
-                        print(area_value,"cm^2 is",round(cm2_to_mm2(area_value),3),"mm^2")
-                    elif area_choice == "G":
-                        print("- METRIC-IMPERIAL AREA CONVERSION -")
-                        print("A: km^2 to ha")
-                        print("B: ha to km^2")
-                        print("C: m^2 to ac")
-                        print("D: ac to m^2")
-
-                        a_imp_choice = input("Please enter conversion: ")
-                        a_imp_choice = a_imp_choice.upper()
-
-                        if a_imp_choice == "A":
-                            print(area_value,"km^2 is",round(km2_to_ha(area_value),3),"ha")
-                        elif a_imp_choice == "B":
-                            print(area_value,"ha is", round(ha_to_km2(area_value),3),"ha")
-                        elif a_imp_choice == "C":
-                            print(area_value,"m^2 is",round(m2_to_ac(area_value),3),"ac")
-                        elif a_imp_choice == "D":
-                            print(area_value,"ac is",round(ac_to_m2(area_value),3),"m^2")
-
-                except InvalidOperation:
-                    print("Invalid value, please enter a number.")
-
-            elif unit_choice == "C":
-                print("- VOLUME -")
-                print("NOTE - 1 ml = 1 cm^3")
-                print("A: mm^3 to l")
-                print("B: l to m^3")
-                print("C: m^3 to ml")
-                print("D: ml to m^3")
-                print("E: l to ml")
-                print("F: ml to l")
-                print("G: Metric-Imperial conversion")
-
-                try:
-
-                    volume_value = input("Please enter volume: ")
-                    volume_value = volume_value.upper()
-                    volume_value = constant_memory if volume_value == "MEMORY" else Decimal(volume_value)
-                    
-                    volume_choice = input("Please enter conversion: ")
-                    volume_choice = volume_choice.upper()
-
-                    if volume_choice == "A":
-                        print(volume_value,"mm^3 is",round(mm3_to_l(volume_value),3),"l")
-                    elif volume_choice == "B":
-                        print(volume_value,"l is",round(l_to_m3(volume_value),3),"m^3")
-                    elif volume_choice == "C":
-                        print(volume_value,"m^3 is", round(m3_to_ml(volume_value),3),"ml")
-                    elif volume_choice == "D":
-                        print(volume_value,"ml is",round(ml_to_m3(volume_value),3),"m^3")
-                    elif volume_choice == "E":
-                        print(volume_value,"l is", round(l_to_ml(volume_value),3),"ml")
-                    elif volume_choice == "F":
-                        print(volume_value,"ml is",round(ml_to_l(volume_value),3),"l")
-                    elif volume_choice == "G":
-                        print("- METRIC-IMPERIAL VOLUME CONVERSION - ")
-                        print("A: fl oz to ml")
-                        print("B: ml to fl oz")
-                        print("C: gal to l")
-                        print("D: l to gal")
-
-                        v_imp_choice = input("Please enter conversion: ")
-                        v_imp_choice = v_imp_choice.upper()
-
-                        if v_imp_choice == "A":
-                            print(volume_value,"fl oz is",round(fl_oz_to_ml(volume_value),3),"ml")
-                        elif v_imp_choice == "B":
-                            print(volume_value,"ml is",round(ml_to_fl_oz(volume_value),3),"fl oz")
-                        elif v_imp_choice == "C":
-                            print(volume_value,"gal is",round(gal_to_l(volume_value),3),"l")
-                        elif v_imp_choice == "D":
-                            print(volume_value,"l is",round(l_to_gal(volume_value),3),"gal")
-
-                except InvalidOperation:
-                    print("Invalid value, please enter a number.")
-
-            elif unit_choice == "D":
-                print("- MASS -")
-                print("A: mg to g")
-                print("B: g to kg")
-                print("C: kg to t")
-                print("D: t to kg")
-                print("E: kg to g")
-                print("F: g to mg")
-                print("G: Metric-Imperial conversion")
-
-                try:
-
-                    mass_value = input("Please enter mass: ")
-                    mass_value = mass_value.upper()
-                    mass_value = constant_memory if mass_value == "MEMORY" else Decimal(mass_value)
-                    
-                    mass_choice = input("Please enter conversion: ")
-                    mass_choice = mass_choice.upper()
-
-                    if mass_choice == "A":
-                        print(mass_value,"mg is",round(mg_to_g(mass_value),3),"g")
-                    elif mass_choice == "B":
-                        print(mass_value,"g is",round(g_to_kg(mass_value),3),"kg")
-                    elif mass_choice == "C":
-                        print(mass_value,"kg is",round(kg_to_t(mass_value),3),"t")
-                    elif mass_choice == "D":
-                        print(mass_value,"t is",round(t_to_kg(mass_value),3),"kg")
-                    elif mass_choice == "E":
-                        print(mass_value,"kg is",round(kg_to_g(mass_value),3),"g")
-                    elif mass_choice == "F":
-                        print(mass_value,"g is",round(g_to_mg(mass_value),3),"mg")
-                    elif mass_choice == "G":
-                        print("- METRIC-IMPERIAL MASS CONVERSION -")
-                        print("A: kg to lbs")
-                        print("B: lbs to kg")
-                        print("C: kg to st")
-                        print("D: st to kg")
-                        print("E: g to oz")
-                        print("F: oz to g")
-
-                        m_imp_choice = input("Please enter conversion: ")
-                        m_imp_choice = m_imp_choice.upper()
-
-                        if m_imp_choice == "A":
-                            print(mass_value,"kg is",round(kg_to_lbs(mass_value),3),"lbs")
-                        elif m_imp_choice == "B":
-                            print(mass_value,"lbs is",round(lbs_to_kg(mass_value),3),"kg")
-                        elif m_imp_choice == "C":
-                            print(mass_value,"kg is",round(kg_to_st(mass_value),3),"st")
-                        elif m_imp_choice == "D":
-                            print(mass_value,"st is",round(st_to_kg(mass_value),3),"kg")
-                        elif m_imp_choice == "E":
-                            print(mass_value,"g is",round(g_to_oz(mass_value),3),"oz")
-                        elif m_imp_choice == "F":
-                            print(mass_value,"oz is",round(oz_to_g(mass_value),3),"g")
-
-                except InvalidOperation:
-                    print("Invalid value, please enter number.")
-
-            else:
-                print("Invalid option, please try again.")
-
-
-        except ValueError:
-                print("Invalid value. Please enter a number.")
-                            
-                                 
-
+            if input("Convert another? (Y/N): ").upper() != "Y":
+                break
+                                
     elif choice == "D":
         print("--- POLYGON AND SOLID CALCULATOR ---")
         print("This section calculates the areas and volumes of certain 2D and 3D objects.")
