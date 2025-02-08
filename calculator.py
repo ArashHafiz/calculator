@@ -30,7 +30,6 @@ def convert_units(value, from_unit, to_unit):
         "mm3": 1e-9, "cm3": 1e-6, "m3": 1, "l": 1e-3, "ml": 1e-6, "fl_oz": 2.95735e-5, "gal": 3.78541e-3,
         "mg": 1e-6, "g": 1e-3, "kg": 1, "t": 1000, "lbs": 0.453592, "st": 6.35029, "oz": 0.0283495
     }
-
         try:
             if from_unit in unit_factors and to_unit in unit_factors:
                 # Convert to base unit, then to target unit
@@ -45,8 +44,10 @@ def convert_units(value, from_unit, to_unit):
             return None
 
 def simple_arithmetic():
+    # Procedure for simple arithmetic section
     while True:
         try:
+            # Dictionary of operators and corresponding symbols
             simple_operators = {
                 "+":lambda x, y : x + y,
                 "-":lambda x, y : x - y,
@@ -54,7 +55,6 @@ def simple_arithmetic():
                 "*":lambda x, y : x * y,
                 "**":lambda x,y : x ** y
                 }        
-
             
             simple_calc_1 = get_decimal_input("Enter first value: ")
 
@@ -66,30 +66,13 @@ def simple_arithmetic():
             if simple_calc_op in simple_operators:
                 simple_calc_ans = simple_operators[simple_calc_op](simple_calc_1, simple_calc_2)
                 print(round(simple_calc_ans, 3))
-
-                
-            simple_calc_1 = input("Enter first value: ")
-            simple_calc_1 = simple_calc_1.upper()
-            simple_calc_1 = constant_memory if simple_calc_1 == "MEMORY" else Decimal(simple_calc_1)
-            simple_calc_2 = input("Enter second value: ")
-            simple_calc_2 = simple_calc_2.upper()
-            simple_calc_2 = constant_memory if simple_calc_2 == "MEMORY" else Decimal(simple_calc_2)
-            
-            simple_calc_op = input("Enter operation: ")
-            
-            if simple_calc_op in simple_operators:
-                simple_calc_ans = simple_operators[simple_calc_op](simple_calc_1,simple_calc_2)
-                print(round(simple_calc_ans,3))
-
                 break
             else:
                 print("Invalid operator, please try again.")
 
         except InvalidOperation:
-
             print("Invalid value entered, please enter a real number.")
 
-            print("Invalid value entered, please try again.")
 
 # ADVANCED ARITHMETIC
 
@@ -115,19 +98,6 @@ def calculate_logarithm():
             log_argument = get_decimal_input("Please enter argument of log: ")
                                                                                   
             print(round(math.log(log_argument, log_base),3))
-
-        except InvalidOperation:
-            print("Invalid value. Please enter a number.")
-
-def calculate_logarithm():
-    while True:
-        try:
-            adv_logbase = get_decimal_input("Please enter base of log: ")
-            
-            adv_logargument = get_decimal_input("Please enter argument of log: ")
-                                                                                  
-            print(round(math.log(adv_logargument,adv_logbase),3))
-
             break
         except InvalidOperation:
             print("Invalid value for logarithm. Please enter a positive real number.")
@@ -144,9 +114,8 @@ def calculate_quadratic():
             if a == 0:
                 print("This is not a quadratic equation (a cannot be 0).")
                 return
-
             
-            # Convert a, b, c to complex to handle real and complex situations
+            # Convert a, b, c to complex to be able to work out complex and real situations
             a, b, c = complex(a), complex(b), complex(c)
 
             # Calculate the discriminant
@@ -185,7 +154,6 @@ def calculate_factorial():
         print("Invalid value for factorial. Please enter a positive integer.")
 
 def calculate_permutation():
-
     # Procedure for permutation calculation
     try:
         print("A permutation can be defined as nPr = n!/(n-r)!")
@@ -197,7 +165,6 @@ def calculate_permutation():
         permutation_n_minus_r_factorial = math.factorial(permutation_n_minus_r)
 
         print("nPr =", permutation_n_factorial / permutation_n_minus_r_factorial)
-
     except ValueError:
         print("Invalid value. Please enter a positive integer where n > r.")
     except ZeroDivisionError:
@@ -450,10 +417,7 @@ def cone_sa():
         
         cone_sa_unit = input("Enter length unit: ")
 
-
         print("Surface area of cone is",round((Decimal(math.pi) * cone_sa_r) * (cone_sa_r + Decimal(math.sqrt(cone_sa_h**2 + cone_sa_r**2))), 3), cone_sa_unit+ "^2")
-
-        print("Surface area of cone is",round((Decimal(math.pi)*cone_sa_r)*(cone_sa_r+Decimal(math.sqrt(cone_sa_h**2+cone_sa_r**2))),3),cone_sa_unit+"^2")
 
     except InvalidOperation:
         print("Invalid value for cone property, please enter number.")
@@ -725,471 +689,3 @@ def statistics_menu():
 
 # Run the main menu
 main_menu()
-
-def mean():
-    mean_list = []
-    while True:
-        try:
-            mean_number = ""
-                
-            mean_number = input("Please enter number (X to stop): ")
-            mean_number = mean_number.upper()
-
-            if mean_number == "X" and len(mean_list) != 0:
-                print(f"Mean of {', '.join(str(x) for x in mean_list)} is {sum(mean_list)/len(mean_list)}")
-                print(f"There were a total of {len(mean_list)} elements.")
-                break
-
-            elif mean_number == "X":
-                print("Returning to menu...")
-                break
-            
-            mean_number = constant_memory if mean_number == "MEMORY" else Decimal(mean_number)
-            mean_list.append(mean_number)
-            
-            print([str(x) for x in mean_list])
-
-        except InvalidOperation:
-            print("Invalid value, please enter a number.")
-
-def median():
-    median_list = []
-    while True:
-        try:
-            median_number = input("Please enter a number (X to stop): ")
-            median_number = median_number.upper()
-            median_list.sort()
-
-            if median_number == "X" and len(median_list) != 0:
-                print(f"Median of {', '.join(str(x) for x in median_list)} is {statistics.median(median_list)}")
-                print(f"There were {len(median_list)} elements")
-                break
-            elif median_number == "X" and len(median_list) == 0:
-                print("Returning to menu...")
-                break
-
-            median_number = constant_memory if median_number == "MEMORY" else Decimal(median_number)
-            median_list.append(median_number)
-
-            print([str(x) for x in median_list])
-                
-
-        except InvalidOperation:
-            print("Invalid value, please enter a number.")
-
-def mode():
-    mode_list = []
-    while True:
-        try:
-            mode_number = input("Please enter a number (X to stop): ")
-            mode_number = mode_number.upper()
-            
-            if mode_number == "X" and len(mode_list) != 0:
-                print(f"Mode of {', '.join(str(x) for x in mode_list)} is {statistics.mode(mode_list)}")
-                print(f"There were {len(mode_list)} elements")
-                break
-            elif mode_number == "X" and len(mode_list) == 0:
-                print("Returning to menu...")
-                break
-
-            mode_number = constant_memory if mode_number == "MEMORY" else Decimal(mode_number)
-            mode_list.append(mode_number)
-
-            print([str(x) for x in mode_list])
-
-        except InvalidOperation:
-            print("Invalid value, please enter number.")
-
-def iqr():
-    iqr_list = []
-    while True:
-        try:
-            iqr_number = input("Please enter number (X to stop): ")
-            iqr_number = iqr_number.upper()
-            iqr_list.sort()
-
-            if iqr_number == "X" and len(iqr_list) != 0:
-                iqr_lower_half = [x for x in iqr_list if x <=
-                                      statistics.median(iqr_list)]
-                iqr_upper_half = [x for x in iqr_list if x >=
-                                  statistics.median(iqr_list)]
-                
-                iqr_q1 = statistics.median(iqr_lower_half)
-                iqr_q3 = statistics.median(iqr_upper_half)
-
-                print(f"Lower Quartile: {iqr_q1}")
-                print(f"Upper Quartile: {iqr_q3}")
-                print(f"Interquartile range: {iqr_q3-iqr_q1}")
-                break
-
-            elif iqr_number == "X" and len(iqr_list) == 0:
-                print("Returning to menu...")
-                break
-
-            iqr_number = constant_memory if iqr_number == "MEMORY" else Decimal(iqr_number)
-            iqr_list.append(iqr_number)
-
-            print([str(x) for x in iqr_list])
-
-        except InvalidOperation:
-            print("Invalid value, please enter a number.")
-
-def statistics_range():
-    range_list = []
-    while True:
-        try:
-            range_number = input("Please enter number: ")
-            range_number = range_number.upper()
-
-            if range_number == "X" and len(range_list) != 0:
-                print(f"Range: {max(range_list) - min(range_list)}")
-                break
-            
-            elif range_number == "X" and len(range_list) == 0:
-                print("Returning to menu...")
-                break
-
-            range_number = constant_memory if range_number == "MEMORY" else Decimal(range_number)
-            range_list.append(range_number)
-
-            print([str(x) for x in range_list])
-
-        except InvalidOperation:
-            print("Invalid value, please enter a number: ")
-            
-                
-
-while choice != "X":
-
-    print("\n==== C A L C U L A T O R ===")
-    print("Welcome to Arash's calculator. Please pick an option: ")
-    
-    print("A: Simple Arithmetic")
-    print("B: Advanced Arithmetic")
-    print("C: Unit Conversion")
-    print("D: Polygon and Solid calculator")
-    print("E: Common constants")
-    print("F: Statistics")
-    print("X: exit")
-
-    choice = input("Please enter an option here: ")
-    choice = choice.upper()
-    if choice == "A":
-        print("--- SIMPLE ARITHMETIC ---")
-        print("This section covers the simplest, most fundamental mathematical concepts.")
-        print("Operators:")
-        print("Addition (+)")
-        print("Subtraction (-)")
-        print("Multiplication (* or x)")
-        print("Division (/)")
-        print("Exponents/Power (**)")
-
-        simple_arithmetic()
-
-    elif choice == "B":
-
-        adv_arithmetic_operators = {
-            "A": calculate_surd,
-            "B": calculate_logarithm,
-            "C": calculate_quadratic,
-            "D": calculate_factorial,
-            "E": calculate_permutation,
-            }
-
-        
-        print("--- ADVANCED ARITHMETIC ---")
-        print("This section covers more advanced mathematical concepts.")
-        print("Operations: ")
-        print("A: Surds (Rooting)")
-        print("B: Logarithms")
-        print("C: Quadratics")
-        print("D: Factorials")
-        print("E: Permutations")
-
-        adv_choice = input("Please enter option: ")
-        adv_choice = adv_choice.upper()
-        if adv_choice in adv_arithmetic_operators:
-            adv_arithmetic_operators[adv_choice]()
-        else:
-            print("Invalid operation, please try again.")
-            
-            
-    elif choice == "C":
-        print("--- UNIT CONVERSION ---")
-        print("This section allows you to convert values from different units, including Metric to Imperial system units.")
-       
-        unit_factors = {
-        "mm": 0.001, "cm": 0.01, "m": 1, "km": 1000, "mi": 1609.34, "yds": 0.9144, "ft": 0.3048,
-        "mm2": 1e-6, "cm2": 1e-4, "m2": 1, "km2": 1e6, "ha": 1e4, "ac": 4046.86,
-        "mm3": 1e-9, "cm3": 1e-6, "m3": 1, "l": 1e-3, "ml": 1e-6, "fl_oz": 2.95735e-5, "gal": 3.78541e-3,
-        "mg": 1e-6, "g": 1e-3, "kg": 1, "t": 1000, "lbs": 0.453592, "st": 6.35029, "oz": 0.0283495
-    }
-
-        while True:
-            from_unit = input("Enter the current unit (e.g., mm, cm, m, km): ").lower()
-            to_unit = input("Enter the unit to convert to: ").lower()
-            value = get_decimal_input("Enter the value to convert: ")
-
-            converted_value = convert_units(value, from_unit, to_unit)
-            if converted_value is not None:
-                print(f"{value} {from_unit} is {converted_value} {to_unit}")
-
-            if input("Convert another? (Y/N): ").upper() != "Y":
-                break
-                                
-    elif choice == "D":
-        print("--- POLYGON AND SOLID CALCULATOR ---")
-        print("This section calculates the areas and volumes of certain 2D and 3D objects.")
-        print("Operations:")
-        print("A: 2D Object area calculator")
-        print("B: Volume calculator")
-        print("C: 3D Object area calculator")
-
-        polygon_solid_choice = input("Please enter chosen operation: ")
-        polygon_solid_choice = polygon_solid_choice.upper()
-
-        if polygon_solid_choice == "A":
-
-            area_calc_operators = {
-                "A": parallelogram_rectangle_area,
-                "B": triangle_area,
-                "C": circle_area,
-                "D": trapezium_area,
-                }
-            
-            print("- AREA CALCULATOR -")
-            print("A: Parallelogram/Rectangle")
-            print("B: Triangle")
-            print("C: Circle")
-            print("D: Trapezium (UK)")
-
-            area_calc_choice = input("Please enter shape to be calculated: ")
-            area_calc_choice = area_calc_choice.upper()
-
-            if area_calc_choice in area_calc_operators:
-                area_calc_operators[area_calc_choice]()
-            else:
-                print("Invalid operation, please try again.")
-                
-        elif polygon_solid_choice == "B":
-            print("- VOLUME CALCULATOR -")
-            print("A: Prism")
-            print("B: Sphere")
-            print("C: Pyramid")
-
-            volume_choice = input("Please enter shape to be calculated: ")
-            volume_choice = volume_choice.upper()
-
-            if volume_choice == "A":
-
-                prism_volume_operators = {
-                "A": cuboid_volume,
-                "B": cylinder_volume,
-                "C": triangle_prism_volume,
-                }
-                
-                print("- PRISM VOLUME CALCULATOR -")
-                print("A: Cuboid")
-                print("B: Cylinder")
-                print("C: Triangular prism")
-
-                prism_volume_choice = input("Please enter shape to be calculated: ")
-                prism_volume_choice = prism_volume_choice.upper()
-
-                if prism_volume_choice in prism_volume_operators:
-                    prism_volume_operators[prism_volume_choice]()
-                else:
-                    print("Invalid operation, please try again.")
-                    
-            elif volume_choice == "B":
-            
-                    sphere_volume()
-                    
-            elif volume_choice == "C":
-
-                pyramid_volume_operators = {
-                    "A": rectangle_pyramid_volume,
-                    "B": tetrahedron_volume,
-                    "C": cone_volume,
-                    }
-                
-                print("- PYRAMID VOLUME CALCULATOR -")
-                print("A: Rectangle-based pyramid")
-                print("B: Regular tetrahedron")
-                print("C: Cone")
-
-                pyramid_volume_choice = input("Please enter shape to be calculated: ")
-                pyramid_volume_choice = pyramid_volume_choice.upper()
-
-                if pyramid_volume_choice in pyramid_volume_operators:
-                    pyramid_volume_operators[pyramid_volume_choice]()
-                else:
-                    print("Invalid operation, please try again.")
-                    
-        if polygon_solid_choice == "C":            
-            print("- SURFACE AREA CALCULATOR -")
-            print("A: Prism")
-            print("B: Sphere")
-            print("C: Pyramid")
-
-            sa_choice = input("Please enter shape to be calculated: ")
-            sa_choice = sa_choice.upper()
-
-            if sa_choice == "A" or sa_choice == "PRISM":
-
-                prism_sa_operators = {
-                    "A": cuboid_sa,
-                    "B": cylinder_sa,
-                    "C": triangle_prism_sa,
-                    }
-                
-                print("- PRISM SURFACE AREA CALCULATOR -")
-                print("A: Cuboid")
-                print("B: Cylinder")
-                print("C: Triangular prism")
-
-                prism_sa_choice = input("Please enter shape to be calculated: ")
-                prism_sa_choice = prism_sa_choice.upper()
-
-                if prism_sa_choice in prism_sa_operators:
-                    prism_sa_operators[prism_sa_choice]()
-                else:
-                    print("Invalid operation, please try again.")
-                    
-            elif sa_choice == "B" or sa_choice == "SPHERE":
-                
-                sphere_sa()
-                
-            elif sa_choice == "C" or sa_choice == "PYRAMID":
-
-                pyramid_sa_operators = {
-                    "A": rectangle_pyramid_sa,
-                    "B": tetrahedron_sa,
-                    "C": cone_sa,
-                    }
-                
-                print("- PYRAMID SURFACE AREA CALCULATOR -")
-                print("A: Rectangle-based pyramid")
-                print("B: Regular tetrahedron")
-                print("C: Cone")
-
-                pyramid_sa_choice = input("Please choose shape to be calculated: ")
-                pyramid_sa_choice = pyramid_sa_choice.upper()
-
-                if pyramid_sa_choice in pyramid_sa_operators:
-                    pyramid_sa_operators[pyramid_sa_choice]()
-                else:
-                    print("Invalid operator, please try again.")
-
-    elif choice == "E":
-        print("- COMMON CONSTANTS -")
-        print("This section allows you to use and retrieve common constants to use in your operations.")
-        print("Once you have selected a constant, type 'memory' when performing calculation to input stored value.")
-        print("A: Mathematical")
-        print("B: Scientific")
-        print("C: Save your own value.")
-
-        constants_choice = input("Please enter constant option: ")
-        constants_choice = constants_choice.upper()
-
-        if constants_choice == "A":
-
-            math_constants = {
-                "A":math.pi,
-                "B":math.e,
-                "C":1.61803398875,
-                "D":math.tau
-                }
-            
-            print("- MATHEMATICAL CONSTANTS -")
-            print("A: π (pi)")
-            print("B: e (Euler's constant)")
-            print("C: φ (Golden ratio)")
-            print("D: τ (Circle constant)")
-
-            math_constants_choice = input("Please enter constant option: ")
-            math_constants_choice = math_constants_choice.upper()
-
-            if math_constants_choice in math_constants:
-                constant_memory = Decimal(math_constants[math_constants_choice])
-                print("Saved to memory, please access saved value in")
-                print("calculation by typing 'memory' into input prompt.")
-            else:
-                print("Invalid option, please try again.")
-
-        elif constants_choice == "B":
-            
-            scientific_constants = {
-                "A": "6.02e23",
-                "B": "2.99792458e8",
-                "C": "6.67430e-11",
-                "D": "6.62607015e-34"
-                }
-                
-            print("- SCIENTIFIC CONSTANTS -")
-            print("A: Nₐ (Avogadro's constant)")
-            print("B: c (Speed of light)")
-            print("C: G (Gravitational constant)")
-            print("D: h (Planck's constant)")
-
-            science_constants_choice = input("Please enter constants option: ")
-            science_constants_choice = science_constants_choice.upper()
-
-            if science_constants_choice in scientific_constants:
-                constant_memory = Decimal(scientific_constants[science_constants_choice])
-                print("Saved to memory, please access saved value in")
-                print("calculation by typing 'memory' into input prompt.")
-            else:
-                print("Invalid option, please try again.")
-
-        elif constants_choice == "C":
-            try:
-                constant_memory = Decimal(input("Please enter value to store: "))
-                print("Saved to memory, please access saved value in")
-                print("calculation by typing 'memory' into input prompt.")
-            except InvalidOperation:
-                print("Invalid! Enter a number")
-
-    elif choice == "F":
-
-        statistics_operators = {
-            "A": mean,
-            "B": median,
-            "C": mode,
-            "D": statistics_range,
-            "E": iqr
-            }
-
-
-        print("- STATISTICS -")
-        print("This section deals with statistical mathematics.")
-        print("A: Mean")
-        print("B: Median")
-        print("C: Mode")
-        print("D: Range")
-        print("E: IQR")
-
-        statistics_choice = input("Please enter chosen operation: ")
-        statistics_choice = statistics_choice.upper()
-
-        if statistics_choice in statistics_operators:
-            statistics_operators[statistics_choice]()
-        else:
-            print("Invalid operator, please try again.")
-        
-    elif choice == "X":
-        print("Exiting...")
-
-    else:
-        print("Invalid option. Please try again.")
-
-
-            
-                
-    
-            
-            
-                        
-
-        
-
