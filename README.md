@@ -1,16 +1,29 @@
-# Calculator
-This is a calculator project I first started back in mid-2023, although I only uploaded it on GitHub a year later. It was one of my first relatively big programming projects, and I coded it in Python because its syntax was easy, beginner-friendly, and was also using it for my IGCSE O-Level Computer Science studies. The calculator is also my first project that I hosted on GitHub.
+# CALCULATOR
+## FEATURES
+- Simple arithmetic
+- Quadratics, surds, permutations
+- Logarithms, factorials
+- Area calculation for 2D objects
+- Volume & surface area calculation for 3D objects
+- Unit conversions
+- Basic statistics
+- Constant storage and retrieval
 
-The calculator has a wide range of functions including:
+## INSTALLATION & SETUP
+1. Clone the repository:
+```
+git clone https://github.com/YOUR-USERNAME/calculator.git
+cd calculator
+```
+2. Run the program:
+```
+python calculator.py
+```
+Note: No external library installations required. Ensure you have Python 3.7+ installed.
 
-• Simple arithmetic
+## BUILT WITH
+1. Python 3.11
+2. Modules including ```decimal```, ```math```, ```cmath```, and ```statistics```.
 
-• More advanced maths such as quadratics and permutations
-
-• Conversion between many units
-
-• Constant storage and retrieval
-
-• Statistics
-
-It currently only runs on CLI (a terminal). I have plans in the future to work on a GUI calculator with much of the same of functionality as this one.
+## LICENSE
+Software is open-source under the MIT license. Feel free to do as you please with it.
