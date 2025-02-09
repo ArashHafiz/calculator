@@ -1,5 +1,5 @@
-# CALCULATOR
-## FEATURES
+# Calculator
+## Features
 - Simple arithmetic
 - Quadratics, surds, permutations
 - Logarithms, factorials
@@ -9,7 +9,7 @@
 - Basic statistics
 - Constant storage and retrieval
 
-## INSTALLATION & SETUP
+## Installation & Setup
 1. Clone the repository:
 ```
 git clone https://github.com/YOUR-USERNAME/calculator.git
@@ -21,9 +21,9 @@ python calculator.py
 ```
 Note: No external library installations required. Ensure you have Python 3.7+ installed.
 
-## BUILT WITH
+## Built With
 1. Python 3.11
 2. Modules including ```decimal```, ```math```, ```cmath```, and ```statistics```.
 
-## LICENSE
+## License
 Software is open-source under the MIT license. Feel free to do as you please with it.
