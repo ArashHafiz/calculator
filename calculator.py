@@ -1,441 +1,617 @@
+
 from decimal import Decimal, getcontext, InvalidOperation
 import math
 import cmath
 import statistics
 
-# Initialization
-choice = ""
-constant_memory = 1
+# Application configuration
 getcontext().prec = 40
+
+APP_NAME = "Arash's Calculator"
+DEFAULT_PRECISION = 3
+PI = Decimal("3.1415926535897932384626433832795028841971")
+
+# Unit conversion factors, expressed in base units.
+# Each category is kept separate to prevent incompatible conversions.
+UNIT_FACTORS = {
+    "length": {
+        "mm": Decimal("0.001"),
+        "cm": Decimal("0.01"),
+        "m": Decimal("1"),
+        "km": Decimal("1000"),
+        "mi": Decimal("1609.34"),
+        "yds": Decimal("0.9144"),
+        "ft": Decimal("0.3048"),
+    },
+    "area": {
+        "mm2": Decimal("0.000001"),
+        "cm2": Decimal("0.0001"),
+        "m2": Decimal("1"),
+        "km2": Decimal("1000000"),
+        "ha": Decimal("10000"),
+        "ac": Decimal("4046.86"),
+    },
+    "volume": {
+        "mm3": Decimal("0.000000001"),
+        "cm3": Decimal("0.000001"),
+        "m3": Decimal("1"),
+        "l": Decimal("0.001"),
+        "ml": Decimal("0.000001"),
+        "fl_oz": Decimal("0.0000295735"),
+        "gal": Decimal("0.00378541"),
+    },
+    "mass": {
+        "mg": Decimal("0.000001"),
+        "g": Decimal("0.001"),
+        "kg": Decimal("1"),
+        "t": Decimal("1000"),
+        "lbs": Decimal("0.453592"),
+        "st": Decimal("6.35029"),
+        "oz": Decimal("0.0283495"),
+    },
+}
+
+# User-defined constant, initially set to 1.
+constant_memory = Decimal("1")
 
 ########################
 # P R O C E D U R E S  #
 ########################
 
 def get_decimal_input(prompt):
-    # General function that allows user to enter input in Decimal
-    # Also allows for the retrieval of saved constants by typing in 'memory'
+    """Prompt for a numeric value, accepting the saved constant as MEMORY."""
     while True:
+        user_input = input(prompt).strip()
+
+        if user_input.upper() == "MEMORY":
+            return constant_memory
+
         try:
-            value = input(prompt).upper()
-            return constant_memory if value == "MEMORY" else Decimal(value)
+            # Strip parentheses if the user enters a value in the form of (value).
+            if user_input.startswith("(") and user_input.endswith(")"):
+                user_input = user_input[1:-1].strip()
+            value = Decimal(user_input)
+
+            if not value.is_finite():
+                print("Please enter a finite number.")
+                continue
+
+            return value
+
         except InvalidOperation:
             print("Invalid input. Please enter a valid number.")
 
 def convert_units(value, from_unit, to_unit):
-        # General function that allows for conversion between selected units using base unit
-        unit_factors = {
-        "mm": 0.001, "cm": 0.01, "m": 1, "km": 1000, "mi": 1609.34, "yds": 0.9144, "ft": 0.3048,
-        "mm2": 1e-6, "cm2": 1e-4, "m2": 1, "km2": 1e6, "ha": 1e4, "ac": 4046.86,
-        "mm3": 1e-9, "cm3": 1e-6, "m3": 1, "l": 1e-3, "ml": 1e-6, "fl_oz": 2.95735e-5, "gal": 3.78541e-3,
-        "mg": 1e-6, "g": 1e-3, "kg": 1, "t": 1000, "lbs": 0.453592, "st": 6.35029, "oz": 0.0283495
+    """Convert a value between compatible measurement units."""
+    from_unit = from_unit.lower().strip()
+    to_unit = to_unit.lower().strip()
+
+    # Find the category containing the source and target units.
+    source_category = None
+    target_category = None
+
+    for category, units in UNIT_FACTORS.items():
+        if from_unit in units:
+            source_category = category
+
+        if to_unit in units:
+            target_category = category
+
+    # Validate that both units exist.
+    if source_category is None or target_category is None:
+        print("Invalid unit entered.")
+        return None
+
+    # Prevent conversions between incompatible dimensions.
+    if source_category != target_category:
+        print("Incompatible units. Both units must belong to the same category.")
+        return None
+
+    # Convert to the category's base unit, then to the target unit.
+    units = UNIT_FACTORS[source_category]
+
+    value_in_base = value * units[from_unit]
+    converted_value = value_in_base / units[to_unit]
+
+    return converted_value.quantize(Decimal("0.001"))
+
+def calculate_simple_operation(first_value, operator, second_value):
+    """Perform a basic arithmetic operation and return its result."""
+
+    operations = {
+        "+": lambda x, y: x + y,
+        "-": lambda x, y: x - y,
+        "*": lambda x, y: x * y,
+        "/": lambda x, y: x / y,
+        "**": lambda x, y: x ** y,
     }
-        try:
-            if from_unit in unit_factors and to_unit in unit_factors:
-                # Convert to base unit, then to target unit
-                value_in_base = Decimal(value) * Decimal(unit_factors[from_unit])  # Convert to base unit
-                converted_value = value_in_base / Decimal(unit_factors[to_unit])   # Convert to target unit
-                return round(converted_value, 3)
-            else:
-                print("Invalid unit entered.")
-                return None
-        except InvalidOperation:
-            print("Invalid number entered.")
-            return None
+
+    if operator not in operations:
+        raise ValueError("Invalid operator.")
+
+    if operator == "/" and second_value == 0:
+        raise ZeroDivisionError("Cannot divide by zero.")
+
+    return operations[operator](first_value, second_value)
 
 def simple_arithmetic():
-    # Procedure for simple arithmetic section
+    """Handle user interaction for simple arithmetic."""
+
     while True:
         try:
-            # Dictionary of operators and corresponding symbols
-            simple_operators = {
-                "+":lambda x, y : x + y,
-                "-":lambda x, y : x - y,
-                "/":lambda x, y : x / y,
-                "*":lambda x, y : x * y,
-                "**":lambda x,y : x ** y
-                }        
-            
-            simple_calc_1 = get_decimal_input("Enter first value: ")
+            first_value = get_decimal_input("Enter first value: ")
+            second_value = get_decimal_input("Enter second value: ")
+            operator = input("Enter operation (+, -, *, /, **): ").strip()
 
-            simple_calc_2 = get_decimal_input("Enter second value: ")
-            
-            simple_calc_op = input("Enter operation: ")
-            
-            # Check if operator valid and performs calculation
-            if simple_calc_op in simple_operators:
-                simple_calc_ans = simple_operators[simple_calc_op](simple_calc_1, simple_calc_2)
-                print(round(simple_calc_ans, 3))
-                break
-            else:
-                print("Invalid operator, please try again.")
+            result = calculate_simple_operation(
+                first_value, operator, second_value
+            )
+
+            print(f"Result: {round(result, DEFAULT_PRECISION)}")
+            break
+
+        except ValueError as error:
+            print(error)
+
+        except ZeroDivisionError as error:
+            print(error)
 
         except InvalidOperation:
-            print("Invalid value entered, please enter a real number.")
+            print("Invalid mathematical operation. Please try again.")
 
 
 # ADVANCED ARITHMETIC
 
+
 def calculate_surd():
-    # Procedure for surd calculation
-    while True: 
+    """Calculate the nth root of a number."""
+
+    while True:
         try:
-            radicand = get_decimal_input("Enter radicand (value inside the surd): ")
-        
-            index = get_decimal_input("Enter index (nth root): ")
-            
-            print(round(radicand**(1/index),3))
+            radicand = get_decimal_input(
+                "Enter radicand (value inside the surd): "
+            )
+            index = get_decimal_input("Enter root index: ")
+
+            if index <= 0 or index != index.to_integral_value():
+                raise ValueError("Root index must be a positive integer.")
+
+            if radicand < 0:
+                if int(index) % 2 == 0:
+                    raise ValueError(
+                        "An even root of a negative number is not real."
+                    )
+
+                result = -((-radicand) ** (Decimal(1) / index))
+            else:
+                result = radicand ** (Decimal(1) / index)
+
+            print(f"Result: {result:.{DEFAULT_PRECISION}f}")
             break
-        except InvalidOperation:
-            print("Invalid value. Ensure the radicand is a real number and the index is a positive integer greater than 1.")
+
+        except (ValueError, InvalidOperation, OverflowError) as error:
+            print(f"Invalid calculation: {error}")
+
 
 def calculate_logarithm():
-    # Procedure for logarithm calculation
+    """Calculate the logarithm of a number with a specified base."""
+
     while True:
         try:
             log_base = get_decimal_input("Please enter base of log: ")
-            
             log_argument = get_decimal_input("Please enter argument of log: ")
-                                                                                  
-            print(round(math.log(log_argument, log_base),3))
+
+            if log_base <= 0 or log_base == 1:
+                raise ValueError(
+                    "Logarithm base must be positive and cannot equal 1."
+                )
+
+            if log_argument <= 0:
+                raise ValueError(
+                    "Logarithm argument must be greater than zero."
+                )
+
+            result = (
+                Decimal(str(math.log(float(log_argument), float(log_base))))
+            )
+
+            print(f"Result: {result:.{DEFAULT_PRECISION}f}")
             break
-        except InvalidOperation:
-            print("Invalid value for logarithm. Please enter a positive real number.")
+
+        except (ValueError, InvalidOperation, OverflowError) as error:
+            print(f"Invalid calculation: {error}")
+
+def solve_quadratic(a, b, c):
+    """Calculate the roots and completed-square form of a quadratic equation."""
+
+    if a == 0:
+        raise ValueError("The coefficient 'a' cannot be zero.")
+
+    discriminant = b ** 2 - 4 * a * c
+
+    # Calculate roots using Decimal when the roots are real.
+    if discriminant >= 0:
+        sqrt_discriminant = discriminant.sqrt()
+
+        root_1 = (-b + sqrt_discriminant) / (2 * a)
+        root_2 = (-b - sqrt_discriminant) / (2 * a)
+
+    # Use complex arithmetic when the roots are imaginary.
+    else:
+        sqrt_discriminant = cmath.sqrt(complex(discriminant))
+
+        a_complex = complex(a)
+        b_complex = complex(b)
+
+        root_1 = (-b_complex + sqrt_discriminant) / (2 * a_complex)
+        root_2 = (-b_complex - sqrt_discriminant) / (2 * a_complex)
+
+    # Completed-square form:
+    # (x + b/2a)^2 + (b² - 4ac)/4a² = 0
+    completed_square_offset = b / (2 * a)
+    completed_square_term = discriminant / (4 * a ** 2)
+
+    return root_1, root_2, completed_square_offset, completed_square_term
 
 def calculate_quadratic():
-    # Procedure for quadratic calculation
+    """Handle user interaction for solving quadratic equations."""
+
     while True:
         try:
-            print("Quadratic Equation: ax^2 + bx + c = 0")
-            a = get_decimal_input("Enter value for a: ")
-            b = get_decimal_input("Enter value for b: ")
-            c = get_decimal_input("Enter value for c: ")
+            print("Quadratic Equation: ax² + bx + c = 0")
 
-            if a == 0:
-                print("This is not a quadratic equation (a cannot be 0).")
-                return
-            
-            # Convert a, b, c to complex to be able to work out complex and real situations
-            a, b, c = complex(a), complex(b), complex(c)
+            a = get_decimal_input("Enter coefficient a: ")
+            b = get_decimal_input("Enter coefficient b: ")
+            c = get_decimal_input("Enter coefficient c: ")
 
-            # Calculate the discriminant
-            discriminant = (b**2) - (4*a*c)
+            (
+                root_1,
+                root_2,
+                completed_square_offset,
+                completed_square_term,
+            ) = solve_quadratic(a, b, c)
 
-            # Compute square root of discriminant
-            sqrt_d = cmath.sqrt(discriminant)  
+            print(f"Root 1: {root_1}")
+            print(f"Root 2: {root_2}")
 
-            # Compute solutions
-            x1 = (-b + sqrt_d) / (2*a)
-            x2 = (-b - sqrt_d) / (2*a)
+            print(
+                "Completed-square form: "
+                f"(x + {completed_square_offset})² "
+                f"+ {completed_square_term} = 0"
+            )
 
-            # Display solutions
-            print("\nSolutions:")
-            print(f"x₁ = {x1.real:.3f} {'+ ' + str(x1.imag) + 'i' if x1.imag != 0 else ''}")
-            print(f"x₂ = {x2.real:.3f} {'+ ' + str(x2.imag) + 'i' if x2.imag != 0 else ''}")
+            break
 
-            # Completed square form: (x + b/2a)^2 - (discriminant/4a)
-            completed_square_term = (b / (2*a)) ** 2 - (c / a)
-            print("\nCompleted Square Form:")
-            print(f"( x + {round(b / (2*a), 3)} )² + {round(completed_square_term, 3)} = 0")
-        
-        except InvalidOperation:
-            print("Invalid value for quadratic. Please try again.")
+        except (ValueError, InvalidOperation, OverflowError) as error:
+            print(f"Invalid calculation: {error}")
 
 def calculate_factorial():
-    # Procedure for factorial calculation
-    try:
-        factorial_argument = int(input("Please enter argument of factorial: "))
-        try:
-            print(math.factorial(factorial_argument))
-        except ValueError:
-            print("Invalid value for a factorial. Please enter a positive integer.")
+    """Calculate the factorial of a non-negative integer."""
 
-    except ValueError:
-        print("Invalid value for factorial. Please enter a positive integer.")
+    while True:
+        try:
+            number = get_decimal_input("Enter a non-negative integer: ")
+
+            if number < 0 or number != number.to_integral_value():
+                raise ValueError(
+                    "Factorial requires a non-negative integer."
+                )
+
+            result = math.factorial(int(number))
+
+            print(f"Result: {result}")
+            break
+
+        except (ValueError, OverflowError) as error:
+            print(f"Invalid calculation: {error}")
 
 def calculate_permutation():
-    # Procedure for permutation calculation
-    try:
-        print("A permutation can be defined as nPr = n!/(n-r)!")
-        permutation_n = int(input("Please enter n value: "))
-        permutation_n_factorial = math.factorial(permutation_n)
+    """Calculate the number of permutations of r objects from n objects."""
 
-        print("n! =",permutation_n_factorial)
-        permutation_n_minus_r = permutation_n - int(input("Please enter r value: "))
-        permutation_n_minus_r_factorial = math.factorial(permutation_n_minus_r)
+    while True:
+        try:
+            n = get_decimal_input("Enter total number of objects (n): ")
+            r = get_decimal_input("Enter number of objects selected (r): ")
 
-        print("nPr =", permutation_n_factorial / permutation_n_minus_r_factorial)
-    except ValueError:
-        print("Invalid value. Please enter a positive integer where n > r.")
-    except ZeroDivisionError:
-        print("Invalid value. Please make it so that n > r.")
+            if (
+                n < 0
+                or r < 0
+                or n != n.to_integral_value()
+                or r != r.to_integral_value()
+            ):
+                raise ValueError(
+                    "Both values must be non-negative integers."
+                )
+
+            if r > n:
+                raise ValueError(
+                    "The number selected cannot exceed the total number."
+                )
+
+            result = math.perm(int(n), int(r))
+
+            print(f"Result: {result}")
+            break
+
+        except (ValueError, OverflowError) as error:
+            print(f"Invalid calculation: {error}")
 
 # POLYGON AND SOLID CALCULATOR
-#2D Area
-def parallelogram_rectangle_area():
-    try:
-        rectangle_area_base = get_decimal_input("Enter base length: ")
-        
-        rectangle_area_height = get_decimal_input("Enter height: ")
-        
-        rectangle_area_unit = get_decimal_input("Enter unit of length: ")
+# 2D AREA
 
-        print("Parallelogram/rectangle area is",round(rectangle_area_base*rectangle_area_height,3),rectangle_area_unit+"^2")
+def calculate_rectangle_area():
+    """Calculate the area of a rectangle or parallelogram."""
+    length = get_decimal_input("Enter length: ")
+    width = get_decimal_input("Enter width: ")
 
-    except InvalidOperation:
-        print("Invalid value. Please enter a number.")
+    if length <= 0 or width <= 0:
+        raise ValueError("All dimensions must be greater than zero.")
 
-def triangle_area():
-    try:
-        triangle_area_base = get_decimal_input("Enter base length: ")
-        
-        triangle_area_height = get_decimal_input("Enter perpendicular height: ")
-        
-        triangle_area_unit = input("Enter unit of length: ")
+    return length * width
 
-        print("Triangle area is",round(Decimal(0.5)*triangle_area_base*triangle_area_height,3),triangle_area_unit+"^2")
 
-    except InvalidOperation:
-        print("Invalid value. Please enter a number.")
+def calculate_triangle_area():
+    """Calculate the area of a triangle."""
+    base = get_decimal_input("Enter base length: ")
+    height = get_decimal_input("Enter perpendicular base height: ")
 
-def circle_area():
-    try:
-        circle_area_radius = get_decimal_input("Enter radius length: ")
-        
-        circle_area_unit = input("Enter unit of length: ")
+    if base <= 0 or height <= 0:
+        raise ValueError("Base length and height must be greater than zero.")
 
-        print("Circle area is",round(Decimal(math.pi)*circle_area_radius**2,3),circle_area_unit+"^2")
+    return Decimal("0.5") * base * height
 
-    except InvalidOperation:
-        print("Invalid value. Please enter a number.")
 
-def trapezium_area():
-    try:
-        trapezium_area_length_a = get_decimal_input("Enter first side length: ")
-        
-        trapezium_area_length_b = get_decimal_input("Enter second side length: ")
-        
-        trapezium_area_height = get_decimal_input("Enter perpendicular height: ")
-        
-        trapezium_area_unit = input("Enter unit of length: ")
+def calculate_circle_area():
+    """Calculate the area of a circle."""
+    radius = get_decimal_input("Enter radius: ")
 
-        print("Trapezium (UK definition) area is",round(Decimal(0.5)*(trapezium_area_length_a+trapezium_area_length_b)*
-                                                        trapezium_area_height,3),trapezium_area_unit+"^2")
+    if radius <= 0:
+        raise ValueError("Radius must be greater than zero.")
 
-    except InvalidOperation:
-        print("Invalid value. Please enter a number.")
+    return PI * radius ** 2
 
-#VOLUME
-def cuboid_volume():
-    try:
-        cuboid_volume_l = get_decimal_input("Enter length of base: ")
-        
-        cuboid_volume_w = get_decimal_input("Enter width of base: ")
 
-        cuboid_volume_h = get_decimal_input("Enter height of cuboid: ")
-        
-        cuboid_volume_unit = input("Enter length unit: ")
+def calculate_trapezium_area():
+    """Calculate the area of a trapezium."""
+    parallel_side_1 = get_decimal_input("Enter first parallel side: ")
+    parallel_side_2 = get_decimal_input("Enter second parallel side: ")
+    height = get_decimal_input("Enter perpendicular height: ")
 
-        print("Volume of cuboid is",round(cuboid_volume_l*cuboid_volume_w*cuboid_volume_h,3),cuboid_volume_unit+"^3")
+    if parallel_side_1 <= 0 or parallel_side_2 <= 0 or height <= 0:
+        raise ValueError("All dimensions must be greater than zero.")
 
-    except InvalidOperation:
-        print("Invalid value. Please enter a number.")
+    return Decimal("0.5") * (parallel_side_1 + parallel_side_2) * height
 
-def cylinder_volume():
-    try:
-        cylinder_volume_r = get_decimal_input("Enter radius of base: ")
-        
-        cylinder_volume_h = get_decimal_input("Enter height of cylinder: ")
-        
-        cylinder_volume_unit = input("Enter length unit: ")
 
-        print("Volume of cylinder is",round((Decimal(math.pi)*cylinder_volume_r**2)*cylinder_volume_h,3),cylinder_volume_unit+"^3")
+# VOLUME
 
-    except InvalidOperation:
-        print("Invalid value. Please enter a number.")
-def triangle_prism_volume():
-    try:
-        triangle_prism_volume_b = get_decimal_input("Enter base length: ")
-        
-        triangle_prism_volume_hb = get_decimal_input("Enter perpendicular height of base: ")
-    
-        triangle_prism_volume_hp = get_decimal_input("Enter height of prism: ")
-        
-        triangle_prism_volume_unit = input("Enter unit of length: ")
+def calculate_cuboid_volume():
+    """Calculate the volume of a cuboid."""
+    length = get_decimal_input("Enter length: ")
+    width = get_decimal_input("Enter width: ")
+    height = get_decimal_input("Enter height: ")
 
-        print("Volume of triangular prism is",round(Decimal(0.5)*triangle_prism_volume_b*
-                                                    triangle_prism_volume_hb*triangle_prism_volume_hp,3),
-                                                    triangle_prism_volume_unit+"^3")
+    if length <= 0 or width <= 0 or height <= 0:
+        raise ValueError("All dimensions must be greater than zero.")
 
-    except InvalidOperation:
-        print("Invalid value. Please enter a number.")
+    return length * width * height
 
-def sphere_volume():
-    try:
-        sphere_volume_r = get_decimal_input("Enter sphere radius: ")
 
-        sphere_volume_unit = input("Enter length unit: ")
+def calculate_cylinder_volume():
+    """Calculate the volume of a cylinder."""
+    radius = get_decimal_input("Enter radius: ")
+    height = get_decimal_input("Enter height: ")
 
-        print("Volume of sphere is",round(Decimal(4/3)*Decimal(math.pi)*sphere_volume_r**3,3),sphere_volume_unit+"^3")
+    if radius <= 0 or height <= 0:
+        raise ValueError("Radius and height must be greater than zero.")
 
-    except InvalidOperation:
-            print("Invalid value. Please enter a number.")
+    return PI * radius ** 2 * height
 
-def rectangle_pyramid_volume():
-    try:
-        rectangle_pyramid_volume_l = get_decimal_input("Enter base length: ")
-        
-        rectangle_pyramid_volume_w = get_decimal_input("Enter base width: ")
-        
-        rectangle_pyramid_volume_h = get_decimal_input("Enter pyramid height: ")
 
-        rectangle_pyramid_volume_unit = input("Enter length unit: ")
+def calculate_triangular_prism_volume():
+    """Calculate the volume of a triangular prism."""
+    base = get_decimal_input("Enter base length of triangle: ")
+    base_height = get_decimal_input("Enter perpendicular height of triangle: ")
+    prism_length = get_decimal_input("Enter length of prism: ")
 
-        print("Volume of rectangle-based pyramid is",
-              round(Decimal(1/3)*rectangle_pyramid_volume_l*rectangle_pyramid_volume_w*rectangle_pyramid_volume_h,3),
-              rectangle_pyramid_volume_unit+"^3")
+    if base <= 0 or base_height <= 0 or prism_length <= 0:
+        raise ValueError("All dimensions must be greater than zero.")
 
-    except InvalidOperation:
-        print("Invalid value. Please enter a number.")
+    triangle_area = Decimal("0.5") * base * base_height
+    return triangle_area * prism_length
 
-def tetrahedron_volume():
-    try:
-        tetrahedron_volume_l = get_decimal_input("Enter side length: ")
-        
-        tetrahedron_volume_unit = input("Please enter length unit: ")
 
-        print("Volume of regular tetrahedron is",round((tetrahedron_volume_l**3)/(6*2**Decimal(1/2)),3),tetrahedron_volume_unit+"^3")
+def calculate_sphere_volume():
+    """Calculate the volume of a sphere."""
+    radius = get_decimal_input("Enter radius: ")
 
-    except InvalidOperation:
-        print("Invalid value. Please enter a number.")
+    if radius <= 0:
+        raise ValueError("Radius must be greater than zero.")
 
-def cone_volume():
-    try:
-        cone_volume_r = get_decimal_input("Enter base radius: ")
+    return (Decimal(4) / Decimal(3)) * PI * radius ** 3
 
-        cone_volume_h = get_decimal_input("Enter perpendicular height of cone: ")
-        
-        cone_volume_unit = input("Enter length unit: ")
 
-        print("Volume of cone is",round(Decimal(1/3)*Decimal(math.pi)*(cone_volume_r**2)*cone_volume_h,3),cone_volume_unit+"^3")
+def calculate_rectangular_pyramid_volume():
+    """Calculate the volume of a rectangular pyramid."""
+    length = get_decimal_input("Enter base length: ")
+    width = get_decimal_input("Enter base width: ")
+    height = get_decimal_input("Enter perpendicular height: ")
 
-    except InvalidOperation:
-        print("Invalid value, please enter number.")
+    if length <= 0 or width <= 0 or height <= 0:
+        raise ValueError("All dimensions must be greater than zero.")
 
-#SURFACE AREA
+    return (length * width * height) / Decimal(3)
+
+
+def calculate_tetrahedron_volume():
+    """Calculate the volume of a regular tetrahedron."""
+    side_length = get_decimal_input("Enter side length: ")
+
+    if side_length <= 0:
+        raise ValueError("Side length must be greater than zero.")
+
+    return side_length ** 3 / (Decimal(6) * Decimal(2).sqrt())
+
+
+def calculate_cone_volume():
+    """Calculate the volume of a cone."""
+    radius = get_decimal_input("Enter radius: ")
+    height = get_decimal_input("Enter perpendicular height: ")
+
+    if radius <= 0 or height <= 0:
+        raise ValueError("Radius and height must be greater than zero.")
+
+    return (PI * radius ** 2 * height) / Decimal(3)
+
+
+# SURFACE AREA
+# These functions return (surface_area, unit). The menu is responsible for
+# displaying the result, keeping output handling consistent with area/volume.
+
 def cuboid_sa():
-    try:
-        cuboid_sa_l = get_decimal_input("Enter cuboid length: ")
-        
-        cuboid_sa_w = get_decimal_input("Enter cuboid width: ")
-        
-        cuboid_sa_h = get_decimal_input("Enter cuboid height: ")
+    """Calculate the surface area of a cuboid."""
+    length = get_decimal_input("Enter cuboid length: ")
+    width = get_decimal_input("Enter cuboid width: ")
+    height = get_decimal_input("Enter cuboid height: ")
+    unit = input("Enter length unit: ").strip()
 
-        cuboid_sa_unit = input("Enter length unit: ")
+    if length <= 0 or width <= 0 or height <= 0:
+        raise ValueError("All dimensions must be greater than zero.")
 
-        print("Cuboid surface area is",round(2*cuboid_sa_l*cuboid_sa_w+2*cuboid_sa_l*cuboid_sa_h+2*cuboid_sa_h*cuboid_sa_w,3),cuboid_sa_unit+"^2")
+    surface_area = Decimal(2) * (length * width + length * height + width * height)
+    return surface_area, unit
 
-    except InvalidOperation:
-        print("Invalid value, please enter number.")
 
 def cylinder_sa():
-    try:
-        cylinder_sa_r = get_decimal_input("Enter base radius: ")
-        
-        cylinder_sa_h = get_decimal_input("Enter cylinder height: ")
-        
-        cylinder_sa_unit = input("Enter length unit: ")
+    """Calculate the surface area of a cylinder."""
+    radius = get_decimal_input("Enter base radius: ")
+    height = get_decimal_input("Enter cylinder height: ")
+    unit = input("Enter length unit: ").strip()
 
-        print("Cylinder surface area is",round(2*Decimal(math.pi)*cylinder_sa_r*cylinder_sa_h+2*math.pi*cylinder_sa_r**2,3),cylinder_sa_unit+"^2")
+    if radius <= 0 or height <= 0:
+        raise ValueError("Radius and height must be greater than zero.")
 
-    except InvalidOperation:
-        print("Invalid value, please enter number.")
+    surface_area = Decimal(2) * PI * radius * (radius + height)
+    return surface_area, unit
+
 
 def triangle_prism_sa():
-    try:
-        triangle_prism_sa_b = get_decimal_input("Enter base length: ")
-        
-        triangle_prism_sa_s1 = get_decimal_input("Enter second base edge length: ")
-        
-        triangle_prism_sa_s2 = get_decimal_input("Enter third base edge length: ")
-        
-        triangle_prism_sa_h = get_decimal_input("Enter base perpendicular height: ")
-        
-        triangle_prism_sa_unit = input("Enter unit: ")
+    """Calculate the surface area of a triangular prism."""
+    base = get_decimal_input("Enter base length of triangle: ")
+    second_side = get_decimal_input("Enter second base edge length: ")
+    third_side = get_decimal_input("Enter third base edge length: ")
+    base_height = get_decimal_input("Enter perpendicular height of triangle: ")
+    prism_length = get_decimal_input("Enter length of prism: ")
+    unit = input("Enter length unit: ").strip()
 
-        print("Triangular prism surface area is",round(triangle_prism_sa_b*triangle_prism_sa_h+
-                                                       (triangle_prism_sa_b+triangle_prism_sa_s1+triangle_prism_sa_s2)*triangle_prism_sa_h,3),
-                                                        triangle_prism_sa_unit+"^2")
+    if min(base, second_side, third_side, base_height, prism_length) <= 0:
+        raise ValueError("All dimensions must be greater than zero.")
 
-    except InvalidOperation:
-        print("Invalid value, please enter number.")
+    if base + second_side <= third_side or base + third_side <= second_side or second_side + third_side <= base:
+        raise ValueError("The three base edges must satisfy the triangle inequality.")
+
+    triangular_base_area = Decimal("0.5") * base * base_height
+    surface_area = (
+        Decimal(2) * triangular_base_area
+        + (base + second_side + third_side) * prism_length
+    )
+    return surface_area, unit
+
 
 def sphere_sa():
-    try:
-        sphere_sa_r = get_decimal_input("Enter base radius: ")
-    
-        sphere_sa_unit = input("Enter unit: ")
+    """Calculate the surface area of a sphere."""
+    radius = get_decimal_input("Enter sphere radius: ")
+    unit = input("Enter length unit: ").strip()
 
-        print("Sphere surface area is",round(4*Decimal(math.pi)*sphere_sa_r**2,3),sphere_sa_unit+"^2")
+    if radius <= 0:
+        raise ValueError("Radius must be greater than zero.")
 
-    except InvalidOperation:
-        print("Invalid value, please enter number.")
+    return Decimal(4) * PI * radius ** 2, unit
+
 
 def rectangle_pyramid_sa():
-    try:
-        pyramid_sa_base_l = get_decimal_input("Enter base length: ")
-        
-        pyramid_sa_base_w = get_decimal_input("Enter base width: ")
-        
-        pyramid_sa_h = get_decimal_input("Enter pyramid height: ")
-        
-        pyramid_sa_unit = input("Enter length unit: ")
+    """Calculate the surface area of a right rectangular pyramid."""
+    base_length = get_decimal_input("Enter base length: ")
+    base_width = get_decimal_input("Enter base width: ")
+    height = get_decimal_input("Enter perpendicular pyramid height: ")
+    unit = input("Enter length unit: ").strip()
 
-        print("Surface area of square-based pyramid is",round(pyramid_sa_base_l*pyramid_sa_base_w+
-                                                              pyramid_sa_base_l*((pyramid_sa_base_w/2)**2+pyramid_sa_h**2)**Decimal(1/2)+
-                                                              pyramid_sa_base_w*((pyramid_sa_base_l/2)**2+pyramid_sa_h**2)**Decimal(1/2),3),
-                                                              pyramid_sa_unit+"^2")
-    except InvalidOperation:
-        print("Invalid value for square-based pyramid, please enter number.")
+    if base_length <= 0 or base_width <= 0 or height <= 0:
+        raise ValueError("All dimensions must be greater than zero.")
+
+    # A right rectangular pyramid has its apex directly above the centre
+    # of the rectangular base, giving two pairs of equal triangular faces.
+    slant_height_for_length_faces = (
+        (base_width / Decimal(2)) ** 2 + height ** 2
+    ).sqrt()
+    slant_height_for_width_faces = (
+        (base_length / Decimal(2)) ** 2 + height ** 2
+    ).sqrt()
+
+    surface_area = (
+        base_length * base_width
+        + base_length * slant_height_for_length_faces
+        + base_width * slant_height_for_width_faces
+    )
+    return surface_area, unit
+
 
 def tetrahedron_sa():
-    try:
-        tetrahedron_sa_side = get_decimal_input("Enter tetrahedrone side length: ")
-        
-        tetrahedron_sa_unit = input("Enter length unit: ")
+    """Calculate the surface area of a regular tetrahedron."""
+    side_length = get_decimal_input("Enter tetrahedron side length: ")
+    unit = input("Enter length unit: ").strip()
 
-        print("Surface area of regular tetrahedron is",round(Decimal(math.sqrt(3))*tetrahedron_sa_side**2,3),tetrahedron_sa_unit+"^2")
-    
-    except InvalidOperation:
-        print("Invalid value for tetrahedron side length, please enter number.")
+    if side_length <= 0:
+        raise ValueError("Side length must be greater than zero.")
+
+    surface_area = Decimal(3).sqrt() * side_length ** 2
+    return surface_area, unit
+
 
 def cone_sa():
-    try:
-        cone_sa_r = get_decimal_input("Enter cone base radius: ")
-        
-        cone_sa_h = get_decimal_input("Enter perpendicular height of cone: ")
-        
-        cone_sa_unit = input("Enter length unit: ")
+    """Calculate the surface area of a cone."""
+    radius = get_decimal_input("Enter cone base radius: ")
+    height = get_decimal_input("Enter perpendicular height of cone: ")
+    unit = input("Enter length unit: ").strip()
 
-        print("Surface area of cone is",round((Decimal(math.pi) * cone_sa_r) * (cone_sa_r + Decimal(math.sqrt(cone_sa_h**2 + cone_sa_r**2))), 3), cone_sa_unit+ "^2")
+    if radius <= 0 or height <= 0:
+        raise ValueError("Radius and height must be greater than zero.")
 
-    except InvalidOperation:
-        print("Invalid value for cone property, please enter number.")
+    slant_height = (height ** 2 + radius ** 2).sqrt()
+    surface_area = PI * radius * (radius + slant_height)
+    return surface_area, unit
+
 
 # STATISTICS
 
 def get_number_list():
-    # Prompts user to enter a list of numbers separated by spaces or commas
+    """Prompt for a list of finite numbers separated by commas or spaces."""
     while True:
+        user_input = input(
+            "Please enter numbers separated by commas or spaces: "
+        ).strip()
+
         try:
-            user_input = input("Please enter numbers separated by commas or spaces: ")
-            num_list = [Decimal(num) for num in user_input.replace(',',' ').split()]
+            num_list = [
+                Decimal(value)
+                for value in user_input.replace(",", " ").split()
+            ]
+
             if not num_list:
                 print("Please enter at least one number.")
                 continue
+
+            if not all(value.is_finite() for value in num_list):
+                print("Please enter only finite numbers.")
+                continue
+
             return num_list
+
         except InvalidOperation:
-            print("Invalid input. Please enter numbers separated by spaces or commas.")
+            print(
+                "Invalid input. Please enter numbers separated by "
+                "commas or spaces."
+            )
 
 def mean():
     # Calculates mean of a list of numbers
@@ -533,79 +709,125 @@ def advanced_arithmetic_menu():
     else:
         print("Invalid option.")
 
-def unit_conversion_menu():
-    # Handles unit conversion choices
 
+def unit_conversion_menu():
+    """Handle unit conversion."""
     print("\n--- UNIT CONVERSION ---")
-    from_unit = input("Enter the current unit (e.g., mm, cm, m, km): ").lower()
-    to_unit = input("Enter the unit to convert to: ").lower()
+    print("Available categories: Length, Area, Volume, Mass")
+
+    category = input("Enter category: ").lower().strip()
+
+    if category not in UNIT_FACTORS:
+        print("Invalid category.")
+        return
+
+    print(f"\nAvailable units: {', '.join(UNIT_FACTORS[category])}")
+
+    from_unit = input("Enter the current unit: ").lower().strip()
+    to_unit = input("Enter the target unit: ").lower().strip()
+
     value = get_decimal_input("Enter the value to convert: ")
 
     converted_value = convert_units(value, from_unit, to_unit)
+
     if converted_value is not None:
-        print(f"{value} {from_unit} is {converted_value} {to_unit}")
+        print(f"{value} {from_unit} = {converted_value} {to_unit}")
 
 def shape_calculator_menu():
-    # Handles shape calculation
-    print("\n--- POLYGON AND SOLID CALCULATOR ---")
-    print("1: 2D Object Area")
-    print("2: 3D Object Volume")
-    print("3: 3D Object Surface Area")
-    print("X: Return to Main Menu")
+    """Handle geometry calculations and display their results."""
 
-    choice = input("Enter an option: ").upper()
+    while True:
+        print("\n--- SHAPE CALCULATOR ---")
+        print("1. Area")
+        print("2. Volume")
+        print("3. Surface Area")
+        print("4. Return to Main Menu")
 
-    if choice == "1":
-        print("Choose shape:")
-        print("A: Parallelogram/Rectangle")
-        print("B: Triangle")
-        print("C: Circle")
-        print("D: Trapezium")
-        shapes = {
-            "A": parallelogram_rectangle_area,
-            "B": triangle_area,
-            "C": circle_area,
-            "D": trapezium_area
-        }
-        shape_choice = input("Enter shape: ").upper()
-        if shape_choice in shapes:
-            shapes[shape_choice]()
+        choice = input("Select an option: ").strip()
 
-    elif choice == "2":
-        print("Choose volume calculation:")
-        print("A: Cuboid")
-        print("B: Cylinder")
-        print("C: Triangular Prism")
-        print("D: Sphere")
-        volumes = {
-            "A": cuboid_volume,
-            "B": cylinder_volume,
-            "C": triangle_prism_volume,
-            "D": sphere_volume
-        }
-        volume_choice = input("Enter shape: ").upper()
-        if volume_choice in volumes:
-            volumes[volume_choice]()
+        if choice == "1":
+            areas = {
+                "1": calculate_rectangle_area,
+                "2": calculate_triangle_area,
+                "3": calculate_circle_area,
+                "4": calculate_trapezium_area,
+            }
 
-    elif choice == "3":
-        print("Choose surface area calculation:")
-        print("A: Cuboid")
-        print("B: Cylinder")
-        print("C: Sphere")
-        surfaces = {
-            "A": cuboid_sa,
-            "B": cylinder_sa,
-            "C": sphere_sa
-        }
-        surface_choice = input("Enter shape: ").upper()
-        if surface_choice in surfaces:
-            surfaces[surface_choice]()
+            print("\n--- AREA ---")
+            for key, function in areas.items():
+                print(f"{key}. {function.__doc__}")
 
-    elif choice == "X":
-        return
-    
-    else:
-        print("Invalid option.")
+            shape_choice = input("Select a shape: ").strip()
+
+            if shape_choice in areas:
+                try:
+                    result = areas[shape_choice]()
+                    print(f"Result: {result:.{DEFAULT_PRECISION}f}")
+                except (ValueError, InvalidOperation, OverflowError) as error:
+                    print(f"Invalid calculation: {error}")
+            else:
+                print("Invalid selection.")
+
+        elif choice == "2":
+            volumes = {
+                "1": calculate_cuboid_volume,
+                "2": calculate_cylinder_volume,
+                "3": calculate_triangular_prism_volume,
+                "4": calculate_sphere_volume,
+                "5": calculate_rectangular_pyramid_volume,
+                "6": calculate_tetrahedron_volume,
+                "7": calculate_cone_volume,
+            }
+
+            print("\n--- VOLUME ---")
+            for key, function in volumes.items():
+                print(f"{key}. {function.__doc__}")
+
+            volume_choice = input("Select a shape: ").strip()
+
+            if volume_choice in volumes:
+                try:
+                    result = volumes[volume_choice]()
+                    print(f"Result: {result:.{DEFAULT_PRECISION}f}")
+                except (ValueError, InvalidOperation, OverflowError) as error:
+                    print(f"Invalid calculation: {error}")
+            else:
+                print("Invalid selection.")
+
+        elif choice == "3":
+            surfaces = {
+                "A": cuboid_sa,
+                "B": cylinder_sa,
+                "C": triangle_prism_sa,
+                "D": sphere_sa,
+                "E": rectangle_pyramid_sa,
+                "F": tetrahedron_sa,
+                "G": cone_sa,
+            }
+
+            print("\n--- SURFACE AREA ---")
+            for key, function in surfaces.items():
+                print(f"{key}: {function.__doc__}")
+
+            surface_choice = input("Enter shape: ").strip().upper()
+
+            if surface_choice in surfaces:
+                try:
+                    result, unit = surfaces[surface_choice]()
+                    print(
+                        f"Result: {result:.{DEFAULT_PRECISION}f} "
+                        f"{unit}²"
+                    )
+                except (ValueError, InvalidOperation, OverflowError) as error:
+                    print(f"Invalid calculation: {error}")
+            else:
+                print("Invalid selection.")
+
+        elif choice == "4":
+            break
+
+        else:
+            print("Invalid selection.")
 
 def constants_menu():
     # Handles constant storage and retrieval
@@ -618,10 +840,10 @@ def constants_menu():
     choice = input("Enter an option: ").upper()
     if choice == "1":
         math_constants = {
-            "A": math.pi,
-            "B": math.e,
-            "C": 1.61803398875,  # Golden Ratio
-            "D": math.tau
+            "A": PI,
+            "B": Decimal("2.7182818284590452353602874713527"),
+            "C": Decimal("1.6180339887498948482045868343656"),  # Golden Ratio
+            "D": PI * Decimal(2),
         }
         print("A: π (pi)")
         print("B: e (Euler's Constant)")
@@ -630,8 +852,8 @@ def constants_menu():
         math_choice = input("Choose a constant: ").upper()
         if math_choice in math_constants:
             global constant_memory
-            constant_memory = Decimal(math_constants[math_choice])
-            print(f"Saved {math_constants[math_choice]} to memory.")
+            constant_memory = math_constants[math_choice]
+            print(f"Saved {constant_memory} to memory.")
 
     elif choice == "2":
         scientific_constants = {
@@ -687,5 +909,6 @@ def statistics_menu():
     else:
         print("Invalid option.")
 
-# Run the main menu
-main_menu()
+# Run the main menu when this file is executed directly.
+if __name__ == "__main__":
+    main_menu()
