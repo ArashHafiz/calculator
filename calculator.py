@@ -815,6 +815,7 @@ def unit_conversion_menu():
             print("Available categories:")
             for key, label in categories.items():
                 print(f"{label} ")
+            print("X: Return to Main Menu")
 
             category = input("Enter category: ").lower().strip()
 
