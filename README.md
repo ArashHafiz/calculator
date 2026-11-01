@@ -74,7 +74,7 @@ Conversions are performed using base-unit conversion factors to maintain consist
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/calculator.git
+git clone https://github.com/ArashHafiz/calculator
 cd calculator
 ```
 
