@@ -813,7 +813,8 @@ def unit_conversion_menu():
         try:
             print("\n--- UNIT CONVERSION ---")
             print("Available categories:")
-            print_menu(categories, x_label="Return to Main Menu")
+            for key, label in categories.items():
+                print(f"{label} ")
 
             category = input("Enter category: ").lower().strip()
 
