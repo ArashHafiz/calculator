@@ -2,7 +2,7 @@
 
 A command-line calculator built with Python, featuring arithmetic operations, advanced mathematical functions, geometry calculations, unit conversions, statistical tools, and constant storage.
 
-The project began as a personal calculator and has since been progressively refactored to improve code organisation, numerical accuracy, input validation, and maintainability.
+The project began as a personal calculator project in 2023 (although I only uploaded this to GitHub in 2025) and has since been progressively refactored to improve code organisation, numerical accuracy, input validation, and maintainability.
 
 ## Features
 
@@ -77,8 +77,6 @@ Conversions are performed using base-unit conversion factors to maintain consist
 git clone https://github.com/ArashHafiz/calculator
 cd calculator
 ```
-
-Replace `YOUR-USERNAME` with your GitHub username.
 
 ### 2. Run the calculator
 
